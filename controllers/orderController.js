@@ -48,8 +48,12 @@ const placeOrder = async (req, res) => {
         const session = await stripe.checkout.sessions.create({
             line_items: line_items,
             mode: 'payment',
-            success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`, // ĐÃ DÙNG BACKTICK
-            cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`, // ĐÃ DÙNG BACKTICK
+            // Tham số chuyển hướng đã sửa
+            success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
+            cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
+
+            // THỬ NGHIỆM: Thêm submit_url hoặc client_reference_id để refresh cache
+            client_reference_id: newOrder._id.toString(),
         })
 
         res.json({ success: true, session_url: session.url })
@@ -90,23 +94,23 @@ const userOrders = async (req, res) => {
 
 //list admin order
 const listOrders = async (req, res) => {
-  try {
-    const orders = await orderModel.find({});
-    res.json({ success: true, data: orders })
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
-  }
+    try {
+        const orders = await orderModel.find({});
+        res.json({ success: true, data: orders })
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: "Error" });
+    }
 }
 
 //api update order
-const updateStatus = async (req,res)=>{
+const updateStatus = async (req, res) => {
     try {
-        await orderModel.findByIdAndUpdate(req.body.orderId,{status:req.body.status});
-        res.json({success:true,message:"Status Updated"})
+        await orderModel.findByIdAndUpdate(req.body.orderId, { status: req.body.status });
+        res.json({ success: true, message: "Status Updated" })
     } catch (error) {
         console.log(error);
-        res.json({success:false,message:"Error"})
+        res.json({ success: false, message: "Error" })
     }
 }
 
