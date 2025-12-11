@@ -16,7 +16,8 @@ const port = process.env.PORT || 4000
 // middleware
 app.use(express.json())
 app.use(cors({
-    origin: 'https://dafastfood.vercel.app', // Tên miền Vercel của bạn
+    // Thêm URL Admin vào danh sách
+    origin: ['https://dafastfood.vercel.app', 'https://adminfastfood.vercel.app'], 
     credentials: true
 }))
 
