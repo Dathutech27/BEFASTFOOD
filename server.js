@@ -15,7 +15,10 @@ const port = process.env.PORT || 4000
 
 // middleware
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+    origin: 'https://dafastfood.vercel.app', // Tên miền Vercel của bạn
+    credentials: true
+}))
 
 // db connection
 connectDB();
