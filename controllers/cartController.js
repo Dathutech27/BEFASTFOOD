@@ -5,16 +5,14 @@ const addToCart = async (req, res) => {
     try {
         let userData = await userModel.findById(req.body.userId);
         
-        // 1. Kiểm tra phòng vệ
         if (!userData) {
             return res.json({ success: false, message: "User not found." });
         }
 
-        // 🚨 SỬA LỖI: Lấy cartData an toàn (Không dùng .toObject()!)
-        // Lấy cartData hiện tại, nếu null/undefined thì tạo object rỗng {}.
-        // Dùng {...} để đảm bảo clone ra object mới trước khi sửa đổi.
-        let cartData = userData.cartData || {};
-        cartData = { ...cartData }; 
+        // 🚨 SỬA LỖI SAO CHÉP CUỐI CÙNG (Cách an toàn nhất)
+        // Lấy cartData. Nếu null/undefined, dùng object rỗng {}.
+        // Object.assign({}, ...) tạo một bản sao mới hoàn toàn.
+        let cartData = Object.assign({}, userData.cartData || {}); 
         
         if (!cartData[req.body.itemId]) {
             cartData[req.body.itemId] = 1;
@@ -23,12 +21,12 @@ const addToCart = async (req, res) => {
             cartData[req.body.itemId] += 1;
         }
 
-        // Cập nhật và lưu
         await userModel.findByIdAndUpdate(req.body.userId, { cartData: cartData });
 
         res.json({ success: true, message: "Added To Cart" });
     } catch (error) {
-        console.log("LỖI addToCart:", error); 
+        // CẦN XEM LOG NÀY NẾU VẪN LỖI
+        console.log("LỖI addToCart (Final Check):", error); 
         res.json({ success: false, message: "Error" })
     }
 }
