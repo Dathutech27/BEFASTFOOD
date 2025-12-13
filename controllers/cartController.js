@@ -5,15 +5,16 @@ const addToCart = async (req, res) => {
     try {
         let userData = await userModel.findById(req.body.userId);
         
-        // 🚨 Sửa 1: Kiểm tra phòng vệ cho User
+        // 1. Kiểm tra phòng vệ
         if (!userData) {
             return res.json({ success: false, message: "User not found." });
         }
 
-        // 🚨 Sửa 2: Lấy dữ liệu giỏ hàng dưới dạng JS object thuần túy
-        // Sử dụng .toObject() để tránh lỗi Mongoose khi sửa đổi
-        // Đảm bảo tạo object rỗng nếu cartData chưa được khởi tạo (null/undefined)
-        let cartData = userData.cartData ? userData.cartData.toObject() : {};
+        // 🚨 SỬA LỖI: Lấy cartData an toàn (Không dùng .toObject()!)
+        // Lấy cartData hiện tại, nếu null/undefined thì tạo object rỗng {}.
+        // Dùng {...} để đảm bảo clone ra object mới trước khi sửa đổi.
+        let cartData = userData.cartData || {};
+        cartData = { ...cartData }; 
         
         if (!cartData[req.body.itemId]) {
             cartData[req.body.itemId] = 1;
@@ -27,7 +28,7 @@ const addToCart = async (req, res) => {
 
         res.json({ success: true, message: "Added To Cart" });
     } catch (error) {
-        console.log("LỖI addToCart:", error); // Log lỗi chi tiết
+        console.log("LỖI addToCart:", error); 
         res.json({ success: false, message: "Error" })
     }
 }
@@ -36,17 +37,21 @@ const addToCart = async (req, res) => {
 const removeFromCart = async (req, res) => {
     try {
         let userData = await userModel.findById(req.body.userId);
-
+        
+        // 1. Kiểm tra phòng vệ
         if (!userData) {
             return res.json({ success: false, message: "User not found." });
         }
 
-        let cartData = userData.cartData ? userData.cartData.toObject() : {};
+        // 🚨 SỬA LỖI: Lấy cartData an toàn (Không dùng .toObject()!)
+        let cartData = userData.cartData || {};
+        cartData = { ...cartData }; 
 
         if (cartData[req.body.itemId] && cartData[req.body.itemId] > 0) {
             cartData[req.body.itemId] -= 1;
         }
         
+        // Cập nhật và lưu
         await userModel.findByIdAndUpdate(req.body.userId, { cartData: cartData });
 
         res.json({ success: true, message: "Removed From Cart" })
@@ -61,12 +66,14 @@ const getCart = async (req, res) => {
     try {
         let userData = await userModel.findById(req.body.userId);
         
+        // 1. Kiểm tra phòng vệ
         if (!userData) {
             return res.json({ success: false, message: "User not found." });
         }
         
-        // Trả về cartData dưới dạng object thuần túy để Android deserialize
-        let cartData = userData.cartData ? userData.cartData.toObject() : {};
+        // 🚨 SỬA LỖI: Lấy cartData an toàn (Không dùng .toObject()!)
+        // Nếu null/undefined thì trả về object rỗng {}
+        let cartData = userData.cartData || {};
 
         res.json({ success: true, cartData: cartData });
     } catch (error) {
@@ -75,4 +82,4 @@ const getCart = async (req, res) => {
     }
 }
 
-export { addToCart, removeFromCart, getCart } // Đảm bảo export đúng
+export { addToCart, removeFromCart, getCart }
